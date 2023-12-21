@@ -27,6 +27,7 @@ import sys
 import tempfile
 import threading
 import time
+import uuid
 
 if sys.version_info.major >= 3:
   long = int
@@ -225,9 +226,14 @@ class Task(object):
                                                 suffix=".log")
       os.close(log_handle)
       return log_name
+    test_uuid=uuid.uuid4().hex
+    log_name = '%s-%s-%d-%s.log' % (Task._normalize(os.path.basename(test_binary)),
+            Task._normalize(test_name), execution_number, test_uuid[0:8])
+    if len(log_name) > 255:
+        new_test_name = test_name[0:len(test_name) - len(log_name) + 255]
+        log_name = '%s-%s-%d-%s.log' % (Task._normalize(os.path.basename(test_binary)),
+                                     Task._normalize(new_test_name), execution_number, test_uuid[0:8])
 
-    log_name = '%s-%s-%d.log' % (Task._normalize(os.path.basename(test_binary)),
-                                 Task._normalize(test_name), execution_number)
 
     return os.path.join(output_dir, log_name)
 
@@ -650,6 +656,11 @@ def find_tests(binaries, additional_args, options, times):
       if options.failed and last_execution_time is not None:
         continue
 
+      if options.cus_filter != '':
+          cus_result = re.match(options.cus_filter, test_name)
+          if cus_result == None:
+              continue
+
       test_command = command + ['--gtest_filter=' + test_name]
       if (test_count - options.shard_index) % options.shard_count == 0:
         for execution_number in range(options.repeat):
@@ -797,6 +808,12 @@ def default_options_parser():
                     default=False,
                     help='Do not run tests from the same test '
                     'case in parallel.')
+  parser.add_option('--cus_filter',
+                    type='string',
+                    default='',
+                    help='cus filter regex')
+
+
   return parser
 
 
