@@ -193,8 +193,7 @@ class Task(object):
     self.runtime_ms = None
 
     self.test_id = (test_binary, test_name)
-    self.task_id = (test_binary, test_name, self.execution_number)
-
+    self.task_id = (test_binary, test_name + uuid.uuid4().hex, self.execution_number)
     self.log_file = Task._logname(self.output_dir, self.test_binary, test_name,
                                   self.execution_number)
 
