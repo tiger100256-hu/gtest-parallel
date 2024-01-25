@@ -660,7 +660,14 @@ def find_tests(binaries, additional_args, options, times):
           if cus_result == None:
               continue
 
-      test_command = command + ['--gtest_filter=' + test_name]
+      if options.splitbysuit == True:
+        if test_group == "":
+            continue
+        test_command = command + ['--gtest_filter=' + test_group + "*"]
+        test_name = test_group
+        test_group = ""
+      else:
+        test_command = command + ['--gtest_filter=' + test_name]
       if (test_count - options.shard_index) % options.shard_count == 0:
         for execution_number in range(options.repeat):
           tasks.append(
@@ -811,6 +818,11 @@ def default_options_parser():
                     type='string',
                     default='',
                     help='cus filter regex')
+  parser.add_option('--splitbysuit',
+                    action='store_true',
+                    default=False,
+                    help='split test work by test suit')
+
 
 
   return parser
